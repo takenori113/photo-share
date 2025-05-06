@@ -3,6 +3,20 @@ import { v4 as uuidv4 } from 'uuid';
 import { Photo } from '@/app/types';
 import { uploadImage } from '@/app/lib/cloudinary';
 
+// CORSヘッダーを設定する関数
+function setCorsHeaders(response: NextResponse) {
+  response.headers.set('Access-Control-Allow-Origin', '*');
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
+  return response;
+}
+
+// OPTIONSリクエストに対応するハンドラ
+export async function OPTIONS() {
+  const response = NextResponse.json({}, { status: 200 });
+  return setCorsHeaders(response);
+}
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
@@ -56,12 +70,14 @@ export async function POST(request: NextRequest) {
       createdAt: new Date().toISOString(),
     };
     
-    return NextResponse.json(photo, { status: 201 });
+    const response = NextResponse.json(photo, { status: 201 });
+    return setCorsHeaders(response);
   } catch (error) {
     console.error('アップロードエラー:', error);
-    return NextResponse.json(
+    const response = NextResponse.json(
       { error: 'ファイルのアップロードに失敗しました' },
       { status: 500 }
     );
+    return setCorsHeaders(response);
   }
 }
