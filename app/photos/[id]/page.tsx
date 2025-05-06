@@ -1,11 +1,13 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import fs from 'fs';
 import path from 'path';
 
 // 写真ページのメタデータを動的に生成
-export async function generateMetadata({ params }: { params: { id: string } }) {
-  const id = await params.id;
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const id = resolvedParams.id;
   return {
     title: `写真 ${id} - 写真共有アプリ`,
     description: '写真共有アプリで共有された写真です。',
@@ -13,8 +15,9 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
 }
 
 // 写真ページのコンポーネント
-export default async function PhotoPage({ params }: { params: { id: string } }) {
-  const id = await params.id;
+export default async function PhotoPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const id = resolvedParams.id;
   
   // 写真のパスを検索
   const uploadDir = path.join(process.cwd(), 'public', 'uploads');
@@ -49,11 +52,16 @@ export default async function PhotoPage({ params }: { params: { id: string } }) 
               <div className="relative w-full h-auto max-h-[70vh] overflow-hidden rounded-lg">
                 {/* 画像を表示 */}
                 <div className="relative w-full h-auto flex justify-center">
-                  <img
-                    src={photoPath}
-                    alt="共有された写真"
-                    className="max-w-full max-h-[70vh] object-contain"
-                  />
+                  <div className="relative w-full h-[70vh]">
+                    <Image
+                      src={photoPath}
+                      alt="共有された写真"
+                      fill
+                      sizes="100vw"
+                      style={{ objectFit: 'contain' }}
+                      priority
+                    />
+                  </div>
                 </div>
               </div>
               
