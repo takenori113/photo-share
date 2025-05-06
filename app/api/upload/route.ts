@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
-import { writeFile } from 'fs/promises';
+import { put } from '@vercel/blob';
 import path from 'path';
 import { Photo } from '@/app/types';
 
@@ -40,16 +40,15 @@ export async function POST(request: NextRequest) {
     const fileExtension = path.extname(originalFilename);
     const filename = `${id}${fileExtension}`;
     
-    // 保存パスを生成
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-    const filePath = path.join(uploadDir, filename);
-    
-    // ファイルを保存
+    // Vercel Blobにアップロード
     const buffer = Buffer.from(await file.arrayBuffer());
-    await writeFile(filePath, buffer);
+    const { url } = await put(filename, buffer, {
+      access: 'public',
+      contentType: file.type,
+    });
     
     // 公開URL
-    const publicPath = `/uploads/${filename}`;
+    const publicPath = url;
     
     // 写真情報を作成
     const photo: Photo = {

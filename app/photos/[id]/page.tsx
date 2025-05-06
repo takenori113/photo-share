@@ -1,8 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import fs from 'fs';
-import path from 'path';
+import { list } from '@vercel/blob';
 
 // 写真ページのメタデータを動的に生成
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -19,19 +18,15 @@ export default async function PhotoPage({ params }: { params: Promise<{ id: stri
   const resolvedParams = await params;
   const id = resolvedParams.id;
   
-  // 写真のパスを検索
-  const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-  const files = fs.readdirSync(uploadDir);
-  
-  // IDで始まるファイルを検索
-  const photoFile = files.find(file => file.startsWith(id));
+  // Vercel Blobから写真を検索
+  const { blobs } = await list({ prefix: id });
   
   // 写真が見つからない場合は404ページを表示
-  if (!photoFile) {
+  if (blobs.length === 0) {
     notFound();
   }
   
-  const photoPath = `/uploads/${photoFile}`;
+  const photoPath = blobs[0].url;
   
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
