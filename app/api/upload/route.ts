@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
-import { put } from '@vercel/blob';
-import path from 'path';
 import { Photo } from '@/app/types';
+import { uploadImage } from '@/app/lib/cloudinary';
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,16 +34,14 @@ export async function POST(request: NextRequest) {
     // 一意のIDを生成
     const id = uuidv4();
     
-    // ファイル名を生成（元のファイル名を保持しつつ、一意性を確保）
+    // 元のファイル名を保持
     const originalFilename = file.name;
-    const fileExtension = path.extname(originalFilename);
-    const filename = `${id}${fileExtension}`;
     
-    // Vercel Blobにアップロード
+    // Cloudinaryにアップロード
     const buffer = Buffer.from(await file.arrayBuffer());
-    const { url } = await put(filename, buffer, {
-      access: 'public',
-      contentType: file.type,
+    const { url } = await uploadImage(buffer, {
+      folder: 'photo-share',
+      public_id: id,
     });
     
     // 公開URL
