@@ -53,13 +53,21 @@ export async function POST(request: NextRequest) {
     
     // Cloudinaryにアップロード
     console.log('Uploading image with ID:', id);
+    console.log('Original filename:', originalFilename);
+    
     const buffer = Buffer.from(await file.arrayBuffer());
+    
+    // IDをファイル名として使用し、フォルダを'photo-share'に設定
+    // Cloudinaryでは、folder/public_idの形式で保存される
     const { url, public_id } = await uploadImage(buffer, {
       folder: 'photo-share',
-      public_id: id,
+      public_id: id, // IDをファイル名として使用
     });
     
-    console.log('Image uploaded successfully. Public ID:', public_id);
+    console.log('Image uploaded successfully.');
+    console.log('Public ID:', public_id);
+    console.log('Folder structure:', public_id.split('/')[0]);
+    console.log('Filename:', public_id.split('/')[1]);
     console.log('Image URL:', url);
     
     // 公開URL
