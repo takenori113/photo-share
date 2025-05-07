@@ -1,7 +1,5 @@
-import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { findImagesByPrefix } from '@/app/lib/cloudinary';
 
 // 写真ページのメタデータを動的に生成
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -17,22 +15,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function PhotoPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
   const id = resolvedParams.id;
-  
-  try {
-    console.log('Searching for photo with ID:', id);
-    
-    // Cloudinaryから写真を検索
-    const { resources } = await findImagesByPrefix(id);
-    
-    console.log('Found resources:', resources.length);
-    
-    // 写真が見つからない場合は404ページを表示
-    if (resources.length === 0) {
-      console.log('No resources found, returning 404');
-      notFound();
-    }
-    
-    const photoPath = resources[0].url;
+  const photoURL = `https://res.cloudinary.com/dnd9suvnz/image/upload/v1746624790/photo-share/${id}.png`;
     
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
@@ -55,7 +38,7 @@ export default async function PhotoPage({ params }: { params: Promise<{ id: stri
                   <div className="relative w-full h-auto flex justify-center">
                     <div className="relative w-full h-[70vh]">
                       <Image
-                        src={photoPath}
+                        src={photoURL}
                         alt="共有された写真"
                         fill
                         sizes="100vw"
@@ -75,7 +58,7 @@ export default async function PhotoPage({ params }: { params: Promise<{ id: stri
                   </Link>
                   
                   <a
-                    href={photoPath}
+                    href={photoURL}
                     download
                     className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   >
@@ -96,8 +79,4 @@ export default async function PhotoPage({ params }: { params: Promise<{ id: stri
         </footer>
       </div>
     );
-  } catch (error) {
-    console.error('写真の取得に失敗しました:', error);
-    notFound();
-  }
 }
