@@ -44,7 +44,7 @@ export default async function PhotoPage({
                 {/* 画像を表示 */}
                 <div className="relative w-full h-auto flex justify-center">
                   <div className="relative w-full h-[70vh]">
-                    <CImage src={id} />
+                    <CImage src={`photo-share/${id}`} />
                   </div>
                 </div>
               </div>
