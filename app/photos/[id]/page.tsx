@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CldImage } from "next-cloudinary";
+import CImage from "@/app/components/cldImage";
 
 // 写真ページのメタデータを動的に生成
 export async function generateMetadata({
@@ -44,14 +44,7 @@ export default async function PhotoPage({
                 {/* 画像を表示 */}
                 <div className="relative w-full h-auto flex justify-center">
                   <div className="relative w-full h-[70vh]">
-                    <CldImage
-                      alt="Shared Photo"
-                      src={id}
-                      crop={{
-                        type: "auto",
-                        source: true,
-                      }}
-                    />
+                    <CImage src={id} />
                   </div>
                 </div>
               </div>
