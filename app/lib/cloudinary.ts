@@ -46,15 +46,19 @@ export async function uploadImage(file: Buffer, options: { folder: string, publi
 // 画像を検索する関数
 export async function findImagesByPrefix(prefix: string) {
   return new Promise<{ resources: Array<{ url: string, public_id: string }> }>((resolve, reject) => {
+    // フォルダを含めた完全なパスで検索
+    // Cloudinaryでは、フォルダを含めた完全なパスがpublic_idになる
     cloudinary.search
-      .expression(`public_id:${prefix}*`)
+      .expression(`public_id:photo-share/${prefix}*`)
       .sort_by('created_at', 'desc')
       .max_results(1)
       .execute()
       .then(result => {
+        console.log('Cloudinary search result:', JSON.stringify(result));
         resolve(result);
       })
       .catch(error => {
+        console.error('Cloudinary search error:', error);
         reject(error);
       });
   });

@@ -52,11 +52,15 @@ export async function POST(request: NextRequest) {
     const originalFilename = file.name;
     
     // Cloudinaryにアップロード
+    console.log('Uploading image with ID:', id);
     const buffer = Buffer.from(await file.arrayBuffer());
-    const { url } = await uploadImage(buffer, {
+    const { url, public_id } = await uploadImage(buffer, {
       folder: 'photo-share',
       public_id: id,
     });
+    
+    console.log('Image uploaded successfully. Public ID:', public_id);
+    console.log('Image URL:', url);
     
     // 公開URL
     const publicPath = url;

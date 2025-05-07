@@ -19,11 +19,16 @@ export default async function PhotoPage({ params }: { params: Promise<{ id: stri
   const id = resolvedParams.id;
   
   try {
+    console.log('Searching for photo with ID:', id);
+    
     // Cloudinaryから写真を検索
     const { resources } = await findImagesByPrefix(id);
     
+    console.log('Found resources:', resources.length);
+    
     // 写真が見つからない場合は404ページを表示
     if (resources.length === 0) {
+      console.log('No resources found, returning 404');
       notFound();
     }
     
