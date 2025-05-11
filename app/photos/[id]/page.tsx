@@ -1,4 +1,3 @@
-import Link from "next/link";
 import CImage from "@/app/components/cldImage";
 
 // 写真ページのメタデータを動的に生成
@@ -50,12 +49,12 @@ export default async function PhotoPage({
               </div>
 
               <div className="mt-6 flex justify-between items-center">
-                <Link
+                {/* <Link
                   href="/"
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   ホームに戻る
-                </Link>
+                </Link> */}
               </div>
             </div>
           </div>
