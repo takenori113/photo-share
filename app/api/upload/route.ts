@@ -1,13 +1,41 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { v4 as uuidv4 } from 'uuid';
-import { Photo } from '@/app/types';
-import { uploadImage } from '@/app/lib/cloudinary';
+import { NextRequest, NextResponse } from "next/server";
+import { v4 as uuidv4 } from "uuid";
+import { Photo } from "@/app/types";
+import { uploadImage } from "@/app/lib/cloudinary";
+
+export const runtime = "nodejs";
+export const preferredRegion = "iad1";
+export const maxDuration = 60;
+
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+const EXTENSION_TO_MIME: Record<string, string> = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".gif": "image/gif",
+  ".webp": "image/webp",
+  ".heic": "image/heic",
+  ".heif": "image/heif",
+  ".avif": "image/avif",
+};
+
+function getMimeTypeFromFile(file: File) {
+  if (file.type.startsWith("image/")) {
+    return file.type;
+  }
+
+  const lowerName = file.name.toLowerCase();
+  const matchedExt = Object.keys(EXTENSION_TO_MIME).find((ext) =>
+    lowerName.endsWith(ext),
+  );
+  return matchedExt ? EXTENSION_TO_MIME[matchedExt] : "";
+}
 
 // CORSヘッダーを設定する関数
 function setCorsHeaders(response: NextResponse) {
-  response.headers.set('Access-Control-Allow-Origin', '*');
-  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
+  response.headers.set("Access-Control-Allow-Origin", "*");
+  response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  response.headers.set("Access-Control-Allow-Headers", "Content-Type");
   return response;
 }
 
@@ -20,59 +48,64 @@ export async function OPTIONS() {
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
-    const file = formData.get('photo') as File;
-    
+    const file = formData.get("photo") as File;
+
     if (!file) {
       return NextResponse.json(
-        { error: 'ファイルがアップロードされていません' },
-        { status: 400 }
+        { error: "ファイルがアップロードされていません" },
+        { status: 400 },
       );
     }
-    
-    // ファイルタイプの検証
-    if (!file.type.startsWith('image/')) {
+
+    const mimeType = getMimeTypeFromFile(file);
+
+    // 一部モバイル環境では file.type が空になるため拡張子でも補完判定する
+    if (!mimeType.startsWith("image/")) {
       return NextResponse.json(
-        { error: '画像ファイルのみアップロードできます' },
-        { status: 400 }
+        { error: "画像ファイルのみアップロードできます" },
+        { status: 400 },
       );
     }
-    
+
     // ファイルサイズの検証 (10MB以下)
-    if (file.size > 10 * 1024 * 1024) {
+    if (file.size > MAX_FILE_SIZE_BYTES) {
       return NextResponse.json(
-        { error: 'ファイルサイズは10MB以下にしてください' },
-        { status: 400 }
+        {
+          error: `ファイルサイズは10MB以下にしてください (受信: ${(file.size / 1024 / 1024).toFixed(1)}MB)`,
+        },
+        { status: 400 },
       );
     }
-    
+
     // 一意のIDを生成
     const id = uuidv4();
-    
+
     // 元のファイル名を保持
     const originalFilename = file.name;
-    
+
     // Cloudinaryにアップロード
-    console.log('Uploading image with ID:', id);
-    console.log('Original filename:', originalFilename);
-    
+    console.log("Uploading image with ID:", id);
+    console.log("Original filename:", originalFilename);
+
     const buffer = Buffer.from(await file.arrayBuffer());
-    
+
     // IDをファイル名として使用し、フォルダを'photo-share'に設定
     // Cloudinaryでは、folder/public_idの形式で保存される
     const { url, public_id } = await uploadImage(buffer, {
-      folder: 'photo-share',
+      folder: "photo-share",
       public_id: id, // IDをファイル名として使用
+      mimeType,
     });
-    
-    console.log('Image uploaded successfully.');
-    console.log('Public ID:', public_id);
-    console.log('Folder structure:', public_id.split('/')[0]);
-    console.log('Filename:', public_id.split('/')[1]);
-    console.log('Image URL:', url);
-    
+
+    console.log("Image uploaded successfully.");
+    console.log("Public ID:", public_id);
+    console.log("Folder structure:", public_id.split("/")[0]);
+    console.log("Filename:", public_id.split("/")[1]);
+    console.log("Image URL:", url);
+
     // 公開URL
     const publicPath = url;
-    
+
     // 写真情報を作成
     const photo: Photo = {
       id,
@@ -81,14 +114,14 @@ export async function POST(request: NextRequest) {
       qrCodeUrl: `/photos/${id}`,
       createdAt: new Date().toISOString(),
     };
-    
+
     const response = NextResponse.json(photo, { status: 201 });
     return setCorsHeaders(response);
   } catch (error) {
-    console.error('アップロードエラー:', error);
+    console.error("アップロードエラー:", error);
     const response = NextResponse.json(
-      { error: 'ファイルのアップロードに失敗しました' },
-      { status: 500 }
+      { error: "ファイルのアップロードに失敗しました" },
+      { status: 500 },
     );
     return setCorsHeaders(response);
   }
